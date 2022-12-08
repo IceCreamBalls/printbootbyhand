@@ -1,5 +1,7 @@
 package com.ice.spring;
 
+import org.springframework.beans.factory.BeanNameAware;
+
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -27,7 +29,7 @@ public class MyApplicationContext {
             String beanName = entry.getKey();
             BeanDefinition beanDefinition = entry.getValue();
             if (beanDefinition.getScope().equals("singleton")){
-                Object bean = createBean(beanDefinition);
+                Object bean = createBean(beanName,beanDefinition);
                 singletonObject.put(beanName, bean);
             }
         }
@@ -35,7 +37,7 @@ public class MyApplicationContext {
 
     }
 
-    private Object createBean(BeanDefinition beanDefinition) {
+    private Object createBean(String beanName,BeanDefinition beanDefinition) {
         Class clazz = beanDefinition.getClazz();
         try {
             Object o = clazz.getDeclaredConstructor().newInstance();
@@ -48,6 +50,10 @@ public class MyApplicationContext {
                     declaredField.setAccessible(true);
                     declaredField.set(o, bean);
                 }
+            }
+            //Aware 回调
+            if(o instanceof BeanNameAware){
+                ((BeanNameAware) o).setBeanName(beanName);
             }
             return o;
         } catch (InstantiationException e) {
@@ -121,7 +127,7 @@ public class MyApplicationContext {
                 Object o = singletonObject.get(beanName);
                 return o;
             }else {
-                Object bean = createBean(beanDefinition);
+                Object bean = createBean(beanName,beanDefinition);
                 return bean;
             }
 
