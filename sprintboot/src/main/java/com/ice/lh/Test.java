@@ -1,5 +1,6 @@
 package com.ice.lh;
 
+import com.ice.service.UserService;
 import com.ice.spring.MyApplicationContext;
 
 /**
@@ -9,9 +10,10 @@ import com.ice.spring.MyApplicationContext;
 public class Test {
     public static void main(String[] args) {
         MyApplicationContext context = new MyApplicationContext(AppConfig.class);
-        Object userService = context.getBean("userService");
+        UserService userService = (UserService) context.getBean("userService");
         Object userService2 = context.getBean("userService");
         Object userService3 = context.getBean("userService");
+        userService.test();
         System.out.println(userService);
         System.out.println(userService2);
         System.out.println(userService3);

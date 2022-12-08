@@ -1,5 +1,6 @@
 package com.ice.service;
 
+import com.ice.spring.Autowired;
 import com.ice.spring.Component;
 import com.ice.spring.Scope;
 
@@ -11,4 +12,10 @@ import com.ice.spring.Scope;
 @Scope("singleton")
 public class UserService {
 
+        @Autowired
+        private OrderService orderService;
+
+        public void test(){
+            System.out.println(orderService);
+        }
 }
