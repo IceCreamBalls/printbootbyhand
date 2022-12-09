@@ -2,6 +2,7 @@ package com.ice.service;
 
 import com.ice.spring.Autowired;
 import com.ice.spring.Component;
+import com.ice.spring.InitializingBean;
 import com.ice.spring.Scope;
 import org.springframework.beans.factory.BeanNameAware;
 
@@ -11,7 +12,7 @@ import org.springframework.beans.factory.BeanNameAware;
  */
 @Component("userService")
 @Scope("singleton")
-public class UserService implements BeanNameAware {
+public class UserService implements BeanNameAware, InitializingBean {
 
         @Autowired
         private OrderService orderService;
@@ -26,5 +27,10 @@ public class UserService implements BeanNameAware {
     @Override
     public void setBeanName(String s) {
         this.beanName = s;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        System.out.println("初始化");
     }
 }

@@ -7,6 +7,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +21,9 @@ public class MyApplicationContext {
 
     private ConcurrentHashMap<String, Object> singletonObject = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    private List<BeanPostProcessor> beanPostProcessorList  = new ArrayList<>();
+
+
 
     public MyApplicationContext(Class configClass) {
         this.configClass = configClass;
@@ -54,6 +59,20 @@ public class MyApplicationContext {
             //Aware 回调
             if(o instanceof BeanNameAware){
                 ((BeanNameAware) o).setBeanName(beanName);
+            }
+
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                beanPostProcessor.postProcessBeforeInitialization(beanName, o);
+            }
+
+            //初始化
+            if(o instanceof InitializingBean ){
+                ((InitializingBean)o).afterPropertiesSet();
+            }
+
+            //BeanPostProcessor
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                beanPostProcessor.postProcessAfterInitialization(beanName, o);
             }
             return o;
         } catch (InstantiationException e) {
@@ -98,6 +117,23 @@ public class MyApplicationContext {
                             //解析类->BeanDefinition，判断当前bean是单例bean，还是prototype的bean
                         Component component = clazz.getDeclaredAnnotation(Component.class);
                         String beanName = component.value();
+
+                        if(BeanPostProcessor.class.isAssignableFrom(clazz)){
+                            try {
+                                BeanPostProcessor beanPostProcessor = (BeanPostProcessor) clazz.getDeclaredConstructor().newInstance();
+                                beanPostProcessorList.add(beanPostProcessor);
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
                         BeanDefinition beanDefinition = new BeanDefinition();
                         beanDefinition.setClazz(clazz);
                         if(clazz.isAnnotationPresent(Scope.class)){
